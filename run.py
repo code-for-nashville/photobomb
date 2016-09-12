@@ -1,4 +1,3 @@
-import datetime
 import logging
 import json
 
@@ -12,10 +11,15 @@ MYSTORE = []
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():
-    msg = 'Request keys: {}'.format(u', '.join(list(request.values.keys())))
     if request.method == 'POST':
-        MYSTORE.append(msg)
-    return u'<br>'.join(MYSTORE)
+        num_media = int(request.values.get('NumMedia', 0))
+        data = {
+            'phone_number': request.values.get('From'),
+            'urls': [request.values.get('MediaUrl{}'.format(d)) for d in range(num_media)]
+        }
+        MYSTORE.append(data)
+        return ''
+    return json.dumps(MYSTORE)
 
 if __name__ == "__main__":
     app.run(debug=True)
