@@ -12,7 +12,7 @@ MYSTORE = []
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():
-    msg = 'Request keys: {}'.format(request.values.keys())
+    msg = 'Request keys: {}'.format(u', '.join(list(request.values.keys())))
     if request.method == 'POST':
         MYSTORE.append(msg)
     return u'<br>'.join(MYSTORE)
