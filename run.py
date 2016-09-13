@@ -18,10 +18,6 @@ def handle():
 
     For information about the request: https://www.twilio.com/docs/api/twiml/sms/twilio_request
     Note: `MediaContentType{num}` and `MediaUrl{num}` where 'num' is a zero-based index derived from NumMedia
-
-    Request keys: MessageSid, ToZip, SmsSid, NumMedia, NumSegments, ToCountry, ApiVersion, Body, FromCountry, To,
-        FromCity, ToState, From, SmsMessageSid, FromZip, FromState, AccountSid, ToCity, SmsStatus,
-
     """
     if request.method == 'POST':
         message_id = request.form.get('MessageSid')
