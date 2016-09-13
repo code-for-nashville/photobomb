@@ -17,7 +17,7 @@ TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_DELETE_IMAGES = os.environ.get('TWILIO_DELETE_IMAGES', False)
 TWILIO_DELETE_MESSAGES = os.environ.get('TWILIO_DELETE_MESSAGES', False)
 
-twl = TwilioRestClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+# twl = TwilioRestClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -44,8 +44,8 @@ def handle():
             else:
                 if TWILIO_DELETE_IMAGES is True:
                     medium_sid = media_url.rsplit('/', 1)[-1]
-                    media_instance = twl.account.messages(message_sid).media(medium_sid).fetch()
-                    media_instance.delete()
+                    # media_instance = twl.account.messages(message_sid).media(medium_sid).fetch()
+                    # media_instance.delete()
         file_contents = '{}\n\n'.format(request.form.get('Body'))
         for k, v in request.form.items():
             if k not in ['Body']:
@@ -57,8 +57,9 @@ def handle():
             pass
         else:
             if TWILIO_DELETE_MESSAGES is True:
-                message = twl.account.messages(message_sid)
-                message.delete()
+                pass
+                # message = twl.account.messages(message_sid)
+                # message.delete()
     # TODO: return an HTTP response code and XML
     return ''
 
