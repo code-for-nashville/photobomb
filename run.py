@@ -29,9 +29,11 @@ def handle():
             extension = CONTENTTYPE_CONFIG.get(content_type, mimetypes.guess_extension(content_type))
             upload_path = '/{}/{}-{}{}'.format(phone_number, message_id, str(i), extension)
             dbx.files_save_url(upload_path, media_url)
-        file_contents = ''
+            # TODO: once ensured that DropBox received the file, delete it from Twilio
+        file_contents = '{}\n\n'.format(request.form.get('Body'))
         for k, v in request.form.items():
-            file_contents += '{}: {}\n'.format(k, str(v))
+            if k not in ['Body']:
+                file_contents += '{}: {}\n'.format(k, str(v))
         dbx.files_upload(file_contents, '/{}/{}.txt'.format(phone_number, message_id))
     # TODO: return an HTTP response code and XML
     return ''
