@@ -1,5 +1,6 @@
 import os
 import mimetypes
+from distutils.util import strtobool
 
 import dropbox
 from dropbox.files import SaveUrlError, UploadError
@@ -7,15 +8,16 @@ from flask import Flask, request
 from twilio.rest import Client as TwilioRestClient
 
 app = Flask(__name__)
-dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
+DROPBOX_TOKEN = os.environ.get('DROPBOX_TOKEN', 'INVALID')
+dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
 CONTENTTYPE_CONFIG = {
     'image/jpeg': '.jpeg'
 }
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
-TWILIO_DELETE_IMAGES = os.environ.get('TWILIO_DELETE_IMAGES', False)
-TWILIO_DELETE_MESSAGES = os.environ.get('TWILIO_DELETE_MESSAGES', False)
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', 'INVALID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', 'INVALID')
+TWILIO_DELETE_MEDIA = bool(strtobool(os.environ.get('TWILIO_DELETE_MEDIA', 'False')))
+TWILIO_DELETE_MESSAGES = bool(strtobool(os.environ.get('TWILIO_DELETE_MESSAGES', 'False')))
 
 twl = TwilioRestClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
@@ -42,7 +44,7 @@ def handle():
                 # TODO: log error
                 pass
             else:
-                if TWILIO_DELETE_IMAGES is True:
+                if TWILIO_DELETE_MEDIA is True:
                     medium_sid = media_url.rsplit('/', 1)[-1]
                     media_instance = twl.account.messages(message_sid).media(medium_sid).fetch()
                     media_instance.delete()
