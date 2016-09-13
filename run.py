@@ -14,25 +14,29 @@ CONTENTTYPE_CONFIG = {
 
 @app.route("/", methods=['GET', 'POST'])
 def handle():
-    """ Handle a Twilio SMS/MMS callback request: https://www.twilio.com/docs/api/twiml/sms/twilio_request
+    """ Handle a Twilio SMS/MMS callback request by sending the contents to a Dropbox folder
+
+    For information about the request: https://www.twilio.com/docs/api/twiml/sms/twilio_request
+    Note: `MediaContentType{num}` and `MediaUrl{num}` where 'num' is a zero-based index derived from NumMedia
 
     Request keys: MessageSid, ToZip, SmsSid, NumMedia, NumSegments, ToCountry, ApiVersion, Body, FromCountry, To,
         FromCity, ToState, From, SmsMessageSid, FromZip, FromState, AccountSid, ToCity, SmsStatus,
-        MediaContentType{num}, MediaUrl{num} (where 'num' is a zero-based index derived from NumMedia)
+
     """
     if request.method == 'POST':
-        phone_number = request.form.get('From')
+        message_id = request.form.get('MessageSid')
+        phone_number = request.form.get('From')[-10:]
         num_media = int(request.form.get('NumMedia', 0))
-        uploads = []
         for i in range(num_media):
             media_url = request.form.get('MediaUrl{}'.format(i))
             content_type = request.form.get('MediaContentType{}'.format(i))
-            message_id = media_url.rsplit('/', 1)[-1]
             extension = CONTENTTYPE_CONFIG.get(content_type, mimetypes.guess_extension(content_type))
-            upload_path = u'/{}/{}{}'.format(phone_number[-10:], message_id, extension)
+            upload_path = '/{}/{}-{}{}'.format(phone_number, message_id, str(i), extension)
             dbx.files_save_url(upload_path, media_url)
-            uploads.append({'upload_path': upload_path, 'content_type': content_type})
-        # TODO: append metadata of the SMS/MMS to (if it exists - else create) a hidden file
+        file_contents = ''
+        for k, v in request.form.items():
+            file_contents += '{}: {}\n'.format(k, str(v))
+        dbx.files_upload(file_contents, '/{}/{}.txt'.format(phone_number, message_id))
     # TODO: return an HTTP response code and XML
     return ''
 
