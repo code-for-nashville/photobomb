@@ -8,7 +8,7 @@ app = Flask(__name__)
 dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
 
 CONTENTTYPE_CONFIG = {
-    'image/jpeg': 'jpeg'
+    'image/jpeg': '.jpeg'
 }
 
 
@@ -21,12 +21,12 @@ def handle():
         MediaContentType{num}, MediaUrl{num} (where 'num' is a zero-based index derived from NumMedia)
     """
     if request.method == 'POST':
-        phone_number = request.values.get('From')
-        num_media = int(request.values.get('NumMedia', 0))
+        phone_number = request.form.get('From')
+        num_media = int(request.form.get('NumMedia', 0))
         uploads = []
         for i in range(num_media):
-            media_url = request.values.get('MediaUrl{}'.format(i))
-            content_type = request.values.get('MediaContentType{}'.format(i))
+            media_url = request.form.get('MediaUrl{}'.format(i))
+            content_type = request.form.get('MediaContentType{}'.format(i))
             message_id = media_url.rsplit('/', 1)[-1]
             extension = CONTENTTYPE_CONFIG.get(content_type, mimetypes.guess_extension(content_type))
             upload_path = u'/{}/{}{}'.format(phone_number[-10:], message_id, extension)
