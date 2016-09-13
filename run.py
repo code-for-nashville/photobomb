@@ -25,7 +25,7 @@ def hello():
             content_type = request.values.get('MediaContentType{}'.format(i))
             message_id = media_url.rsplit('/', 1)[-1]
             extension = mimetypes.guess_extension(content_type)
-            upload_path = u'{}/{}{}'.format(phone_number.strip('+'), message_id, extension)
+            upload_path = u'/{}/{}{}'.format(phone_number.strip('+'), message_id, extension)
             dbx.files_save_url(upload_path, media_url)
             uploads.append({'upload_path': upload_path, 'content_type': content_type})
         # TODO: append metadata of the SMS/MMS to (if it exists - else create) a hidden file
