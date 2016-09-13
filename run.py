@@ -2,7 +2,9 @@ import os
 import mimetypes
 
 import dropbox
+from dropbox.files import SaveUrlError, UploadError
 from flask import Flask, request
+from twilio.rest import Client as TwilioRestClient
 
 app = Flask(__name__)
 dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
@@ -10,6 +12,12 @@ dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
 CONTENTTYPE_CONFIG = {
     'image/jpeg': '.jpeg'
 }
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_DELETE_IMAGES = os.environ.get('TWILIO_DELETE_IMAGES', False)
+TWILIO_DELETE_MESSAGES = os.environ.get('TWILIO_DELETE_MESSAGES', False)
+
+twl = TwilioRestClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -20,21 +28,37 @@ def handle():
     Note: `MediaContentType{num}` and `MediaUrl{num}` where 'num' is a zero-based index derived from NumMedia
     """
     if request.method == 'POST':
-        message_id = request.form.get('MessageSid')
-        phone_number = request.form.get('From')[-10:]
+        message_sid = request.form.get('MessageSid')
+        phone_number = request.form.get('From')[-10:]  # original is E.164 format: https://en.wikipedia.org/wiki/E.164
         num_media = int(request.form.get('NumMedia', 0))
         for i in range(num_media):
             media_url = request.form.get('MediaUrl{}'.format(i))
             content_type = request.form.get('MediaContentType{}'.format(i))
             extension = CONTENTTYPE_CONFIG.get(content_type, mimetypes.guess_extension(content_type))
-            upload_path = '/{}/{}-{}{}'.format(phone_number, message_id, str(i), extension)
-            dbx.files_save_url(upload_path, media_url)
-            # TODO: once ensured that DropBox received the file, delete it from Twilio
+            upload_path = '/{}/{}-{}{}'.format(phone_number, message_sid, str(i), extension)
+            try:
+                dbx.files_save_url(upload_path, media_url)
+            except SaveUrlError:
+                # TODO: log error
+                pass
+            else:
+                if TWILIO_DELETE_IMAGES is True:
+                    medium_sid = media_url.rsplit('/', 1)[-1]
+                    media_instance = twl.account.messages(message_sid).media(medium_sid).fetch()
+                    media_instance.delete()
         file_contents = '{}\n\n'.format(request.form.get('Body'))
         for k, v in request.form.items():
             if k not in ['Body']:
                 file_contents += '{}: {}\n'.format(k, str(v))
-        dbx.files_upload(file_contents, '/{}/{}.txt'.format(phone_number, message_id))
+        try:
+            dbx.files_upload(file_contents, '/{}/{}.txt'.format(phone_number, message_sid))
+        except UploadError:
+            # TODO: log error
+            pass
+        else:
+            if TWILIO_DELETE_MESSAGES is True:
+                message = twl.account.messages(message_sid)
+                message.delete()
     # TODO: return an HTTP response code and XML
     return ''
 
