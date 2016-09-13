@@ -5,7 +5,7 @@ import dropbox
 from flask import Flask, request
 
 app = Flask(__name__)
-dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
+# dbx = dropbox.Dropbox(os.environ.get('DROPBOX_TOKEN'))
 
 
 @app.route("/", methods=['GET', 'POST'])
