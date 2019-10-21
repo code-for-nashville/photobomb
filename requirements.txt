@@ -12,4 +12,4 @@ six==1.10.0
 twilio==6.0.0rc10
 typing==3.5.2.2
 urllib3==1.17
-Werkzeug==0.11.11
+Werkzeug==0.15.3
