@@ -1,4 +1,4 @@
-#Photobomb
+# Photobomb
 
 Capture SMS/MMS data sent to a phone number into a Dropbox folder.  Dropbox folder will contain one directory for each
 sender's phone number, which will amount to a log/store of messages and media.
